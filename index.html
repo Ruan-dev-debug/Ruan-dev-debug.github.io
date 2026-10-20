@@ -24,6 +24,7 @@
   <!-- 01 -->
   <section class="scene s1" id="s1" aria-label="Quem sou eu">
     <div class="stage">
+      <canvas id="cvs" aria-hidden="true"></canvas>
       <canvas id="cv" aria-hidden="true"></canvas>
       <div class="inner">
         <div class="copy">
@@ -47,21 +48,25 @@
           <p>Integrar o seu negócio a um site ou aplicativo próprio deixa sua empresa aberta 24 horas, passa confiança e coloca você na tela de quem está procurando o que você vende.</p>
         </div>
         <div class="v">
-          <div class="v2">
-            <div class="win"><div class="wbar"><i></i><i></i><i></i><span>index.html</span></div><pre class="code" id="code2" aria-hidden="true"></pre></div>
-            <div class="win"><div class="wbar"><i></i><i></i><i></i><span>sualoja.com.br</span></div>
-              <div class="page" role="img" aria-label="Um site sendo construído a partir do código">
-                <div class="layer wire" id="wire2">
-                  <div class="wnav"><div class="wb"></div><div class="wb"></div></div>
-                  <div class="whero"><div class="wb"></div><div class="wb"></div><div class="wb"></div><div class="wb"></div></div>
-                  <div class="wcards"><div class="wb"></div><div class="wb"></div><div class="wb"></div></div>
-                </div>
-                <div class="layer paint" id="paint2">
-                  <div class="pnav"><span class="logo">sualoja</span><span class="links"><span>Início</span><span>Serviços</span></span></div>
-                  <div class="hero"><h1>Sua loja aberta 24h</h1><p class="hp">Peça pelo WhatsApp em um clique.</p><span class="pb">Pedir agora</span></div>
-                  <div class="cards"><div class="card">Camisetas</div><div class="card">Tênis</div><div class="card">Bonés</div></div>
-                </div>
+          <div class="win v2" role="img" aria-label="Código em Python sendo escrito e, depois, a página da loja aparecendo na tela">
+            <div class="wbar"><i></i><i></i><i></i><span>sualoja.com.br</span><em class="stat" id="stat2" style="font-style:normal"><u></u><b id="stat2t">escrevendo código</b></em></div>
+            <div class="page">
+              <div class="codeL" aria-hidden="true">
+                <div class="tab">app.py</div>
+                <pre class="code" id="code2"></pre>
+                <div class="term" id="term2"></div>
               </div>
+              <div class="layer paint" id="paint2">
+                <div class="pnav" data-rv><span class="logo">sualoja</span><span class="links"><span>Início</span><span>Produtos</span><span>Contato</span></span></div>
+                <div class="hero">
+                  <h1 data-rv>Sua loja aberta 24h</h1>
+                  <p class="hp" data-rv>Escolha e peça pelo WhatsApp em um clique.</p>
+                  <span class="pb" data-rv>Pedir agora</span>
+                </div>
+                <div class="cards"><div class="card" data-rv data-d="0">Camisetas</div><div class="card" data-rv data-d="1">Tênis</div><div class="card" data-rv data-d="2">Bonés</div></div>
+                <div class="prow"><div class="pnote" data-rv>Pix · Entrega para todo o Brasil</div><span class="pwa" data-rv data-d="3">WhatsApp</span></div>
+              </div>
+              <div class="scan" id="scan2"></div>
             </div>
           </div>
         </div>

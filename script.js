@@ -340,96 +340,386 @@ var CONFIG = { nome: "Ruan Dener", whatsapp: "5564984450981" };
     if (stat2.getAttribute("data-s") !== st) { stat2.setAttribute("data-s", st); stat2t.textContent = st; stat2.classList.toggle("live", st === "no ar"); }
   }
 
-  /* ---------- cena 3: papéis viram tela ---------- */
-  var c3 = copyInit("s3"), svg3 = $("#svg3"), P3 = [], rows3 = [], r3 = rng(7);
-  S("path", { d: "M185 205 H352", stroke: "#2A3F78", "stroke-width": 2, "stroke-dasharray": "4 7", fill: "none" }, svg3);
-  S("rect", { x: 372, y: 28, width: 172, height: 324, rx: 28, fill: "#0F1830", stroke: "#5B8CFF", "stroke-width": 3 }, svg3);
-  S("rect", { x: 384, y: 48, width: 148, height: 290, rx: 18, fill: "#0A1226" }, svg3);
-  var t3 = S("text", { x: 396, y: 72, fill: "#E6ECFA", "font-size": 13, "font-weight": 600, "font-family": "IBM Plex Sans, sans-serif" }, svg3);
-  t3.textContent = "Pedidos de hoje";
-  for (var i3 = 0; i3 < 8; i3++) {
-    var y3 = 84 + i3 * 31, g3 = S("g", { opacity: 0 }, svg3);
-    S("rect", { x: 394, y: y3, width: 128, height: 25, rx: 7, fill: "#1A2750" }, g3);
-    S("rect", { x: 403, y: y3 + 8, width: 58, height: 8, rx: 4, fill: "#5B8CFF", opacity: .7 }, g3);
-    S("circle", { cx: 507, cy: y3 + 12.5, r: 8, fill: "#3DDC97" }, g3);
-    S("path", { d: "M503 " + (y3 + 12.5) + " l3 3 l6 -6", stroke: "#06102A", "stroke-width": 2, fill: "none", "stroke-linecap": "round", "stroke-linejoin": "round" }, g3);
-    rows3.push(g3);
+  /* ---------- cena 3: pilha de papéis vira a tela do celular (canvas) ---------- */
+  var c3 = copyInit("s3"), cv3 = $("#cv3"), cx3 = cv3.getContext("2d"), c3a = $("#c3a"), c3b = $("#c3b");
+  var LW = 600, LH = 430, K3 = 1, DPR3 = 1, SC = 1, PHN = { x: 398, y: 35, w: 176, h: 360 }, STK = { x: 150, y: 238 };
+  var PAP = [], phoneSpr = null;
+  var FS = "'IBM Plex Sans', system-ui, sans-serif", FM = "'IBM Plex Mono', ui-monospace, monospace", FH = "'Segoe Script','Bradley Hand','Snell Roundhand','Comic Sans MS',cursive";
+  var ROWS3 = [
+    ["Ana Silva", "1041", "R$ 50,00", "#5B8CFF"], ["João Pereira", "1042", "R$ 120,00", "#F5B84B"],
+    ["Loja Sol", "1043", "R$ 80,50", "#3DDC97"], ["Mercado Lua", "1044", "R$ 200,00", "#B58BFF"],
+    ["Pedro Alves", "1045", "R$ 75,00", "#FF8F8F"], ["Clara Dias", "1046", "R$ 60,00", "#5BD0FF"],
+    ["Bar do Zé", "1047", "R$ 340,00", "#F58BD0"], ["Lúcia Reis", "1048", "R$ 95,00", "#9BE15D"]
+  ];
+  var PT = ["stain", "table", "agenda", "lined", "invoice", "receipt", "pink", "yellow"];
+  var PS = { stain: [118, 150], table: [118, 150], agenda: [118, 150], lined: [118, 150], invoice: [118, 150], receipt: [66, 172], pink: [80, 80], yellow: [84, 84] };
+  var PO = { stain: [4, 6, -6], table: [-6, -2, 5], agenda: [8, -4, -9], lined: [-4, 4, 8], invoice: [6, 2, -4], receipt: [-36, -6, -11], pink: [38, 36, 10], yellow: [-26, -46, -8] };
+
+  function rrp(g, x, y, w, h, r) {
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
   }
-  for (var k3 = 7; k3 >= 0; k3--) {
-    var pg = S("g", {}, svg3);
-    S("rect", { x: -60, y: -75, width: 120, height: 150, rx: 5, fill: "#E9EEF9" }, pg);
-    S("rect", { x: -48, y: -62, width: 56, height: 9, rx: 3, fill: "#7A93D6" }, pg);
-    for (var l3 = 0; l3 < 5; l3++) S("rect", { x: -48, y: -40 + l3 * 18, width: 56 + Math.round(r3() * 38), height: 6, rx: 3, fill: "#B7C4E6" }, pg);
-    P3[k3] = { g: pg, rot: (r3() - .5) * 14, ox: k3 * 1.4, oy: -k3 * 2.6 };
+  function hand(g, x, y, len, seed, col, lw) {
+    var r = rng(seed);
+    g.save(); g.strokeStyle = col; g.lineWidth = lw || 1.05; g.lineCap = "round"; g.lineJoin = "round"; g.globalAlpha = 0.9;
+    g.beginPath(); g.moveTo(x, y);
+    for (var d = 0; d < len; d += 2.5) {
+      var ny = y + Math.sin(d * 1.9) * 1.4 + (r() - 0.5) * 2.2 - (r() < 0.12 ? 2.8 : 0);
+      if (r() < 0.1) { d += 3; g.moveTo(x + d, ny); } else g.lineTo(x + d, ny);
+    }
+    g.stroke(); g.restore();
   }
-  var c3a = $("#c3a"), c3b = $("#c3b");
+  function shadowOn(g, blur, dy, a) { g.shadowColor = "rgba(0,0,0," + a + ")"; g.shadowBlur = blur * SC; g.shadowOffsetY = dy * SC; g.shadowOffsetX = dy * 0.3 * SC; }
+  function sheet(g, w, h, c1, c2, cut) {
+    g.save(); shadowOn(g, 12, 5, 0.5);
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(w, 0);
+    if (cut) { g.lineTo(w, h - cut); g.lineTo(w - cut, h); } else g.lineTo(w, h);
+    g.lineTo(0, h); g.closePath();
+    var gr = g.createLinearGradient(0, 0, w * 0.6, h); gr.addColorStop(0, c1); gr.addColorStop(1, c2);
+    g.fillStyle = gr; g.fill(); g.restore();
+    g.save(); g.lineWidth = 0.6; g.strokeStyle = "rgba(0,0,0,.12)"; g.stroke(); g.restore();
+    var cr = g.createLinearGradient(0, h * 0.5, 0, h * 0.5 + 3); cr.addColorStop(0, "rgba(0,0,0,.07)"); cr.addColorStop(1, "rgba(255,255,255,.35)");
+    g.fillStyle = cr; g.fillRect(0, h * 0.5, w, 3);
+    if (cut) {
+      g.save(); g.beginPath(); g.moveTo(w, h - cut); g.lineTo(w - cut, h); g.lineTo(w - cut, h - cut); g.closePath();
+      var f = g.createLinearGradient(w - cut, h - cut, w, h); f.addColorStop(0, "#FFFFFF"); f.addColorStop(1, "#CDD1DC");
+      g.shadowColor = "rgba(0,0,0,.3)"; g.shadowBlur = 3 * SC; g.shadowOffsetY = 1 * SC; g.fillStyle = f; g.fill(); g.restore();
+    }
+  }
+  function postit(g, w, h, c1, c2, l1, l2, seed) {
+    g.save(); shadowOn(g, 10, 4, 0.45);
+    var gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, c1); gr.addColorStop(1, c2);
+    g.fillStyle = gr; g.fillRect(0, 0, w, h); g.restore();
+    g.fillStyle = "rgba(255,255,255,.28)"; g.fillRect(0, 0, w, 11);
+    var cv = g.createLinearGradient(0, h - 16, 0, h); cv.addColorStop(0, "rgba(0,0,0,0)"); cv.addColorStop(1, "rgba(0,0,0,.16)");
+    g.fillStyle = cv; g.fillRect(0, h - 16, w, 16);
+    g.fillStyle = "#3B2C12"; g.font = "600 11px " + FH; g.textBaseline = "alphabetic";
+    g.fillText(l1, 8, 32); g.fillText(l2, 8, 47);
+    hand(g, 8, 60, 46, seed, "#3B2C12", 1);
+  }
+  var PD = {
+    lined: function (g, w, h) {
+      sheet(g, w, h, "#FFFEF8", "#F0EEE2", 0);
+      g.lineWidth = 0.6; g.strokeStyle = "rgba(120,160,225,.85)";
+      for (var y = 26; y < h - 6; y += 9.5) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+      g.strokeStyle = "rgba(225,110,110,.9)"; g.beginPath(); g.moveTo(21, 0); g.lineTo(21, h); g.stroke();
+      for (var hy = 12; hy < h - 6; hy += 15) { g.fillStyle = "rgba(10,18,40,.8)"; g.beginPath(); g.arc(7, hy, 2.3, 0, 7); g.fill(); g.strokeStyle = "rgba(0,0,0,.25)"; g.lineWidth = 0.5; g.stroke(); }
+      g.fillStyle = "#25398A"; g.font = "700 11px " + FH; g.fillText("Pedidos 12/10", 26, 19);
+      var k = 0; for (var yy = 35.5; yy < h - 10; yy += 9.5, k++) {
+        hand(g, 26, yy - 2, 34 + ((k * 37) % 44), 40 + k, "#2A3E8A", 1);
+        if (k % 2 === 0) hand(g, w - 30, yy - 2, 18, 90 + k, "#2A3E8A", 1);
+      }
+    },
+    table: function (g, w, h) {
+      sheet(g, w, h, "#FFFFFF", "#EEF1F7", 11);
+      g.fillStyle = "#DDE4F4"; g.fillRect(6, 8, w - 12, 12);
+      g.fillStyle = "#3C4C78"; g.font = "600 5.2px " + FS; g.textBaseline = "middle";
+      g.fillText("CLIENTE", 9, 14.5); g.fillText("DATA", 56, 14.5); g.fillText("VALOR", 80, 14.5); g.fillText("OK", 105, 14.5);
+      var cols = [6, 54, 78, 102, w - 6], rr = rng(5);
+      g.strokeStyle = "rgba(90,110,160,.35)"; g.lineWidth = 0.5;
+      for (var r = 0; r <= 9; r++) { var y = 20 + r * 12; g.beginPath(); g.moveTo(6, y); g.lineTo(w - 6, y); g.stroke(); }
+      for (var c = 0; c < cols.length; c++) { g.beginPath(); g.moveTo(cols[c], 8); g.lineTo(cols[c], 128); g.stroke(); }
+      for (var r2 = 0; r2 < 9; r2++) {
+        var cy = 26 + r2 * 12;
+        g.fillStyle = "#9AA5C2"; g.fillRect(9, cy - 1.2, 18 + rr() * 18, 2.4); g.fillRect(57, cy - 1.2, 12 + rr() * 6, 2.4); g.fillRect(81, cy - 1.2, 10 + rr() * 8, 2.4);
+        if (r2 % 3 !== 1) { g.strokeStyle = "#2A3E8A"; g.lineWidth = 1.1; g.beginPath(); g.moveTo(106, cy); g.lineTo(108.5, cy + 2.6); g.lineTo(113, cy - 2.8); g.stroke(); }
+      }
+      g.strokeStyle = "#D63B3B"; g.lineWidth = 1.3; g.beginPath(); g.ellipse(88, 62, 15, 6.4, -0.08, 0, 6.28); g.stroke();
+    },
+    agenda: function (g, w, h) {
+      sheet(g, w, h, "#FFFFFF", "#EFF1F6", 11);
+      g.fillStyle = "#2F4FA0"; g.fillRect(0, 0, w, 24);
+      g.fillStyle = "#FFFFFF"; g.font = "700 8.5px " + FS; g.textBaseline = "alphabetic"; g.fillText("AGENDA", 8, 15);
+      g.font = "500 6px " + FM; g.textAlign = "right"; g.fillText("OUTUBRO", w - 8, 15); g.textAlign = "left";
+      var ds = ["D", "S", "T", "Q", "Q", "S", "S"], cw = (w - 12) / 7, n = 1;
+      g.fillStyle = "#6B7799"; g.font = "600 5px " + FS; g.textAlign = "center";
+      for (var d = 0; d < 7; d++) g.fillText(ds[d], 6 + cw * (d + 0.5), 34);
+      g.font = "500 5.6px " + FM;
+      for (var r = 0; r < 5; r++) for (var c = 0; c < 7; c++) {
+        var x = 6 + cw * (c + 0.5), y = 46 + r * 19; g.fillStyle = "#4B5675"; if (n <= 31) g.fillText(String(n), x, y); n++;
+        g.strokeStyle = "rgba(90,110,160,.3)"; g.lineWidth = 0.5; g.strokeRect(6 + cw * c, 38 + r * 19, cw, 19);
+      }
+      g.textAlign = "left";
+      g.strokeStyle = "#D63B3B"; g.lineWidth = 1.2; g.beginPath(); g.arc(6 + cw * 3.5, 84, 7.5, 0, 7); g.stroke();
+      hand(g, 6 + cw * 1 + 1, 56, 11, 12, "#2A3E8A", 1); hand(g, 6 + cw * 4 + 1, 75, 12, 14, "#2A3E8A", 1); hand(g, 6 + cw * 5 + 1, 113, 11, 15, "#2A3E8A", 1);
+    },
+    stain: function (g, w, h) {
+      sheet(g, w, h, "#FBF8EF", "#EDE8D8", 0);
+      g.lineWidth = 0.55; g.strokeStyle = "rgba(120,150,200,.55)";
+      for (var y = 18; y < h - 6; y += 9.5) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+      for (var k = 0, yy = 16; yy < h - 12; yy += 9.5, k++) hand(g, 10, yy, 40 + ((k * 29) % 58), 200 + k, "#233A86", 1);
+      var rg = g.createRadialGradient(78, 96, 4, 78, 96, 30); rg.addColorStop(0, "rgba(120,80,40,.0)"); rg.addColorStop(0.7, "rgba(120,80,40,.09)"); rg.addColorStop(1, "rgba(120,80,40,0)");
+      g.fillStyle = rg; g.beginPath(); g.arc(78, 96, 30, 0, 7); g.fill();
+      g.strokeStyle = "rgba(112,70,28,.5)"; g.lineWidth = 2.4; g.beginPath(); g.arc(78, 96, 22, 0.2, 5.9); g.stroke();
+      g.strokeStyle = "rgba(112,70,28,.22)"; g.lineWidth = 1.2; g.beginPath(); g.arc(78.5, 96.5, 23.6, 1, 6.2); g.stroke();
+      g.fillStyle = "rgba(112,70,28,.35)"; g.beginPath(); g.arc(98, 124, 2.2, 0, 7); g.fill(); g.beginPath(); g.arc(56, 70, 1.3, 0, 7); g.fill();
+    },
+    invoice: function (g, w, h) {
+      sheet(g, w, h, "#FFFFFF", "#F1F2F6", 11);
+      g.fillStyle = "#274690"; g.fillRect(0, 0, w, 24);
+      g.fillStyle = "#FFFFFF"; g.font = "700 8px " + FS; g.textBaseline = "alphabetic"; g.fillText("NOTA FISCAL", 8, 15);
+      g.font = "500 6px " + FM; g.textAlign = "right"; g.fillText("Nº 1042", w - 8, 15); g.textAlign = "left";
+      var lb = ["Cliente", "Produto", "Qtd.", "Valor"], vals = [40, 52, 14, 34];
+      g.fillStyle = "#5B6682"; g.font = "500 5.6px " + FS;
+      for (var i = 0; i < 4; i++) {
+        var y = 40 + i * 14; g.fillText(lb[i] + ":", 8, y);
+        g.fillStyle = "#9AA5C2"; g.fillRect(40, y - 3.4, vals[i], 2.8); g.fillStyle = "#5B6682";
+        g.strokeStyle = "rgba(90,110,160,.3)"; g.lineWidth = 0.5; g.beginPath(); g.moveTo(8, y + 4); g.lineTo(w - 8, y + 4); g.stroke();
+      }
+      g.fillStyle = "#1F2A4A"; g.font = "600 6.6px " + FM; g.fillText("TOTAL  R$ 120,00", 8, 124);
+      g.save(); g.translate(80, 100); g.rotate(-0.32);
+      g.strokeStyle = "rgba(205,45,45,.8)"; g.lineWidth = 1.9; rrp(g, -26, -11, 52, 22, 3); g.stroke();
+      g.fillStyle = "rgba(205,45,45,.8)"; g.font = "800 14px " + FS; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("PAGO", 0, 1); g.restore();
+      g.textAlign = "left"; g.textBaseline = "alphabetic";
+      var rr = rng(9); g.fillStyle = "rgba(255,255,255,.5)";
+      for (var s = 0; s < 36; s++) { g.beginPath(); g.arc(54 + rr() * 52, 90 + rr() * 22, 0.7, 0, 7); g.fill(); }
+    },
+    receipt: function (g, w, h) {
+      g.save(); shadowOn(g, 12, 5, 0.5);
+      g.beginPath(); g.moveTo(0, 0); g.lineTo(w, 0); g.lineTo(w, h - 5);
+      for (var x = w, up = false; x > 0; x -= 5.5, up = !up) g.lineTo(x - 2.75, up ? h - 5 : h);
+      g.lineTo(0, h - 5); g.closePath();
+      var gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, "#FCFAF3"); gr.addColorStop(1, "#E9E6DA"); g.fillStyle = gr; g.fill(); g.restore();
+      g.fillStyle = "#2B2B2B"; g.textBaseline = "alphabetic"; g.textAlign = "center"; g.font = "700 7.4px " + FM; g.fillText("LOJA SOL", w / 2, 14);
+      g.font = "400 4px " + FM; g.fillText("CNPJ 12.345.678/0001-90", w / 2, 21); g.fillText("- - - - - - - - - - - - -", w / 2, 29);
+      var it = [["CAMISETA", "39,90"], ["BONÉ", "49,90"], ["MEIA", "12,50"], ["TÊNIS", "199,90"], ["CINTO", "29,90"]];
+      g.font = "400 5px " + FM;
+      for (var i = 0; i < it.length; i++) { g.textAlign = "left"; g.fillText(it[i][0], 6, 40 + i * 9); g.textAlign = "right"; g.fillText(it[i][1], w - 6, 40 + i * 9); }
+      g.textAlign = "center"; g.fillText("- - - - - - - - - - - - -", w / 2, 88);
+      g.font = "700 6.4px " + FM; g.textAlign = "left"; g.fillText("TOTAL", 6, 99); g.textAlign = "right"; g.fillText("332,20", w - 6, 99);
+      g.font = "400 4.6px " + FM; g.textAlign = "left"; g.fillText("PAGO COM PIX", 6, 109);
+      var r = rng(3), bx = 8; g.fillStyle = "#222";
+      while (bx < w - 8) { var bw = 0.6 + r() * 1.6; g.fillRect(bx, 124, bw, 22); bx += bw + 0.6 + r() * 1.4; }
+      g.textAlign = "center"; g.font = "400 4px " + FM; g.fillText("7891234567890", w / 2, 155); g.textAlign = "left";
+    },
+    yellow: function (g, w, h) { postit(g, w, h, "#FFEC7A", "#F6CF3A", "ligar p/", "o João!!", 31); },
+    pink: function (g, w, h) { postit(g, w, h, "#FFA9C6", "#F57BA6", "pagar a", "conta de luz", 33); }
+  };
+
+  function bake(w, h, pad, fn) {
+    var c = document.createElement("canvas"); c.width = Math.ceil((w + pad * 2) * SC); c.height = Math.ceil((h + pad * 2) * SC);
+    var g = c.getContext("2d"); g.scale(SC, SC); g.translate(pad, pad); fn(g, w, h);
+    return { c: c, w: w, h: h, pad: pad };
+  }
+  function bakePhone() {
+    return bake(PHN.w, PHN.h, 40, function (g, w, h) {
+      g.save(); shadowOn(g, 30, 14, 0.7);
+      rrp(g, 0, 0, w, h, 34); g.fillStyle = "#0A0F22"; g.fill(); g.restore();
+      var fr = g.createLinearGradient(0, 0, w, 0);
+      fr.addColorStop(0, "#7683A8"); fr.addColorStop(0.12, "#E7EDF9"); fr.addColorStop(0.5, "#98A6C9"); fr.addColorStop(0.88, "#D6DEF0"); fr.addColorStop(1, "#6E7C9F");
+      rrp(g, 0, 0, w, h, 34); g.fillStyle = fr; g.fill();
+      rrp(g, 2.6, 2.6, w - 5.2, h - 5.2, 31.5); g.fillStyle = "#0B0F1E"; g.fill();
+      var bt = g.createLinearGradient(0, 0, 0, 1); 
+      g.fillStyle = fr;
+      g.fillRect(-2.4, 74, 2.8, 20); g.fillRect(-2.4, 108, 2.8, 34); g.fillRect(-2.4, 150, 2.8, 34); g.fillRect(w - 0.4, 116, 2.8, 56);
+      rrp(g, 8, 8, w - 16, h - 16, 26); g.fillStyle = "#0A1330"; g.fill();
+    });
+  }
+
+  function layout3(narrow) {
+    if (narrow) { LW = 380; LH = 470; PHN.x = 198; PHN.y = 16; STK.x = 96; STK.y = 382; }
+    else { LW = 600; LH = 430; PHN.x = 398; PHN.y = 35; STK.x = 150; STK.y = 238; }
+  }
+  function setup3() {
+    var v = cv3.parentNode, vr = v.getBoundingClientRect(), sw = $(".swap", v);
+    var aw = vr.width, ah = vr.height - (sw ? sw.offsetHeight + 12 : 0);
+    if (!aw || ah < 80) return;
+    layout3(aw < 480);
+    var cw = Math.floor(Math.min(aw, ah * LW / LH, 760)), ch = Math.round(cw * LH / LW);
+    DPR3 = Math.min(2, window.devicePixelRatio || 1); K3 = cw / LW; SC = K3 * DPR3;
+    cv3.style.width = cw + "px"; cv3.style.height = ch + "px";
+    cv3.width = Math.round(cw * DPR3); cv3.height = Math.round(ch * DPR3);
+    var PF = aw < 480 ? 1.05 : 1.3;
+    PAP = PT.map(function (t, i) {
+      var sz = PS[t], o = PO[t];
+      return { spr: bake(sz[0] * PF, sz[1] * PF, 24, function (g, w, h) { g.scale(PF, PF); PD[t](g, sz[0], sz[1]); }), x0: STK.x + o[0] * PF, y0: STK.y + o[1] * PF - i * 1.2, rot: o[2] * Math.PI / 180, t: 0 };
+    });
+    phoneSpr = bakePhone();
+  }
+
+  function bez(a, b, c, t) { var m = 1 - t; return m * m * a + 2 * m * t * b + t * t * c; }
+  function drawSprite(g, s, x, y, rot, sc, al) {
+    g.save(); g.translate(x, y); g.rotate(rot); g.scale(sc, sc); g.globalAlpha = al;
+    g.drawImage(s.c, -(s.w / 2 + s.pad), -(s.h / 2 + s.pad), s.w + 2 * s.pad, s.h + 2 * s.pad); g.restore();
+  }
+  function drawScreen3(g, rowP, toast, saved) {
+    var sx = PHN.x + 8, sy = PHN.y + 8, sw = 160, sh = 344;
+    g.save(); rrp(g, sx, sy, sw, sh, 26); g.clip();
+    var bg = g.createLinearGradient(0, sy, 0, sy + sh); bg.addColorStop(0, "#112357"); bg.addColorStop(1, "#080F26"); g.fillStyle = bg; g.fillRect(sx, sy, sw, sh);
+    g.textBaseline = "alphabetic"; g.fillStyle = "#E6ECFA"; g.font = "600 9px " + FS; g.textAlign = "left"; g.fillText("9:41", sx + 18, sy + 22);
+    g.fillStyle = "#E6ECFA"; rrp(g, sx + sw - 34, sy + 14.5, 15, 7.5, 2); g.globalAlpha = 0.9; g.fill(); g.globalAlpha = 1; g.fillRect(sx + sw - 18.4, sy + 16.8, 1.5, 3);
+    for (var b = 0; b < 4; b++) g.fillRect(sx + sw - 54 + b * 3.4, sy + 21.5 - b * 1.8, 2.2, 1.8 + b * 1.8);
+    g.fillStyle = "#FFFFFF"; g.font = "700 12.5px " + FS; g.fillText("Pedidos de hoje", sx + 10, sy + 46);
+    var done = 0; for (var i = 0; i < 8; i++) if (rowP[i] >= 0.999) done++;
+    g.fillStyle = "rgba(91,140,255,.22)"; rrp(g, sx + sw - 44, sy + 35, 34, 15, 7.5); g.fill();
+    g.fillStyle = "#9DBBFF"; g.font = "600 8.5px " + FM; g.textAlign = "center"; g.fillText(done + "/8", sx + sw - 27, sy + 45.6); g.textAlign = "left";
+    for (var n = 0; n < 8; n++) {
+      var rp = rowP[n]; if (rp <= 0) continue;
+      var e = ease(rp), ry = sy + 56 + n * 31, rx = sx + 7 + (1 - e) * -14, R = ROWS3[n];
+      g.globalAlpha = e;
+      g.fillStyle = "#18295A"; rrp(g, rx, ry, sw - 14, 27, 8); g.fill();
+      g.fillStyle = R[3]; g.beginPath(); g.arc(rx + 13, ry + 13.5, 8.5, 0, 7); g.fill();
+      g.fillStyle = "#0A1330"; g.font = "700 9px " + FS; g.textAlign = "center"; g.fillText(R[0].charAt(0), rx + 13, ry + 16.6); g.textAlign = "left";
+      g.fillStyle = "#FFFFFF"; g.font = "600 9.4px " + FS; g.fillText(R[0], rx + 26, ry + 12);
+      g.fillStyle = "#8FA0C8"; g.font = "400 7.4px " + FS; g.fillText("Pedido " + R[1], rx + 26, ry + 21.5);
+      g.fillStyle = "#DCE6FF"; g.font = "500 8px " + FM; g.textAlign = "right"; g.fillText(R[2], rx + sw - 14 - 26, ry + 21.3); g.textAlign = "left";
+      var pop = 0.6 + 0.4 * ease(clamp((rp - 0.3) / 0.7)); g.save(); g.translate(rx + sw - 14 - 12, ry + 13.5); g.scale(pop, pop);
+      g.fillStyle = "#2FCB86"; g.beginPath(); g.arc(0, 0, 6.2, 0, 7); g.fill();
+      g.strokeStyle = "#06231A"; g.lineWidth = 1.6; g.lineCap = "round"; g.lineJoin = "round"; g.beginPath(); g.moveTo(-2.8, 0.2); g.lineTo(-0.7, 2.4); g.lineTo(3, -2.2); g.stroke(); g.restore();
+      g.globalAlpha = 1;
+    }
+    if (toast > 0) {
+      var te = ease(toast), ty = sy + sh - 36 + (1 - te) * 20;
+      g.globalAlpha = te; g.fillStyle = "#17795A"; rrp(g, sx + 10, ty, sw - 20, 24, 12); g.fill();
+      g.fillStyle = "#EFFFF8"; g.font = "600 8.6px " + FS; g.textAlign = "center"; g.fillText("Tudo salvo e organizado", sx + sw / 2 + 5, ty + 15); g.textAlign = "left";
+      g.strokeStyle = "#EFFFF8"; g.lineWidth = 1.5; g.lineCap = "round"; g.beginPath(); g.moveTo(sx + 20, ty + 12.2); g.lineTo(sx + 22.6, ty + 14.8); g.lineTo(sx + 27, ty + 9.6); g.stroke();
+      g.globalAlpha = 1;
+    }
+    g.fillStyle = "rgba(255,255,255,.55)"; rrp(g, sx + sw / 2 - 24, sy + sh - 8, 48, 3.4, 1.7); g.fill();
+    var gl = g.createLinearGradient(sx, sy, sx + sw * 0.9, sy + sh * 0.7); gl.addColorStop(0, "rgba(255,255,255,.10)"); gl.addColorStop(0.4, "rgba(255,255,255,0)");
+    g.fillStyle = gl; g.fillRect(sx, sy, sw, sh);
+    g.restore();
+    g.fillStyle = "#000"; rrp(g, PHN.x + PHN.w / 2 - 30, PHN.y + 14, 60, 17, 8.5); g.fill();
+    g.fillStyle = "#16224A"; g.beginPath(); g.arc(PHN.x + PHN.w / 2 + 20, PHN.y + 22.5, 3.4, 0, 7); g.fill();
+    g.fillStyle = "#2A4A9A"; g.beginPath(); g.arc(PHN.x + PHN.w / 2 + 20, PHN.y + 22.5, 1.4, 0, 7); g.fill();
+  }
+
   function u3(p) {
     copyP(c3, p, 0.04, 0.34);
-    for (var i = 0; i < 8; i++) {
-      var t = seg(p, 0.07 + i * 0.088, 0.07 + i * 0.088 + 0.16), e = ease(t), P = P3[i];
-      var x = lerp(100 + P.ox, 457, e), y = lerp(205 + P.oy, 200, e) - Math.sin(Math.PI * e) * 70;
-      P.g.setAttribute("transform", "translate(" + x.toFixed(1) + " " + y.toFixed(1) + ") rotate(" + lerp(P.rot, 0, e).toFixed(2) + ") scale(" + lerp(1, 0.26, e).toFixed(3) + ")");
-      P.g.setAttribute("opacity", t < 0.86 ? 1 : 1 - (t - 0.86) / 0.14);
-      rows3[i].setAttribute("opacity", seg(t, 0.82, 1));
+    if (!PAP.length) return;
+    var g = cx3, i, n;
+    g.setTransform(DPR3 * K3, 0, 0, DPR3 * K3, 0, 0); g.imageSmoothingQuality = "high";
+    g.clearRect(0, 0, LW, LH);
+    var prog = seg(p, 0.06, 0.84), pcx = PHN.x + PHN.w / 2, pcy = PHN.y + PHN.h / 2;
+    var gr0 = Math.max(40, Math.min(pcx, LW - pcx, pcy, LH - pcy) - 4);
+    var gl = g.createRadialGradient(pcx, pcy, 10, pcx, pcy, gr0); gl.addColorStop(0, "rgba(91,140,255," + (0.12 + 0.26 * prog) + ")"); gl.addColorStop(1, "rgba(91,140,255,0)");
+    g.fillStyle = gl; g.fillRect(pcx - gr0, pcy - gr0, gr0 * 2, gr0 * 2);
+    var dr = Math.max(40, Math.min(150, STK.x, LH - STK.y, STK.y) - 4);
+    var dk = g.createRadialGradient(STK.x, STK.y, 10, STK.x, STK.y, dr); dk.addColorStop(0, "rgba(130,160,235,.10)"); dk.addColorStop(1, "rgba(130,160,235,0)");
+    g.fillStyle = dk; g.fillRect(STK.x - dr, STK.y - dr, dr * 2, dr * 2);
+    /* tempo de cada papel: o de cima sai primeiro */
+    var rowP = [], T = [];
+    for (n = 0; n < 8; n++) { var s0 = 0.06 + n * 0.088; T[n] = seg(p, s0, s0 + 0.17); rowP[n] = seg(T[n], 0.8, 1); }
+    for (i = 0; i < 8; i++) { var pi = PAP[i], tt = T[7 - i]; if (tt <= 0) drawSprite(g, pi.spr, pi.x0, pi.y0, pi.rot, 1, 1); }
+    g.drawImage(phoneSpr.c, PHN.x - phoneSpr.pad, PHN.y - phoneSpr.pad, phoneSpr.w + 2 * phoneSpr.pad, phoneSpr.h + 2 * phoneSpr.pad);
+    drawScreen3(g, rowP, seg(p, 0.86, 0.93), 0);
+    for (i = 0; i < 8; i++) {
+      var q = PAP[i], n2 = 7 - i, t = T[n2]; if (t <= 0 || t >= 1) continue;
+      var e = ease(t), tx = PHN.x + 8 + 7 + 13, ty = PHN.y + 8 + 56 + n2 * 31 + 13.5;
+      var cx = (q.x0 + tx) / 2, cy = Math.min(q.y0, ty) - 95 - n2 * 3;
+      var bump = Math.sin(Math.PI * seg(t, 0, 0.3)), sc = (1 + (0.16 - 1)) * 0 + (1 + (0.15 - 1) * e) * (1 + 0.12 * bump);
+      var rot = q.rot * (1 - e) + Math.sin(Math.PI * e) * 0.38 * (n2 % 2 ? 1 : -1);
+      drawSprite(g, q.spr, bez(q.x0, cx, tx, e), bez(q.y0, cy, ty, e), rot, sc, t < 0.78 ? 1 : 1 - seg(t, 0.78, 1));
     }
-    var k = seg(p, 0.86, 0.95);
+    var k = seg(p, 0.88, 0.95);
     c3a.style.opacity = 1 - k; c3b.style.opacity = k;
   }
 
-  /* ---------- cena 4: planilha se organiza ---------- */
-  var c4 = copyInit("s4"), svg4 = $("#svg4"), r4 = rng(21);
-  var X4 = [10, 140, 240, 340], CWID = [126, 96, 96, 90], RH = 34, Y4 = 14, HEAD = ["Cliente", "Data", "Valor", "Status"];
-  var D4 = [
-    { m: ["ANA SILVA", "12/10", "R$50", "pago"], c: ["Ana Silva", "12/10/2026", "R$ 50,00", "Pago"] },
-    { m: ["joao p", "2026-10-13", "120", "PAGO"], c: ["João Pereira", "13/10/2026", "R$ 120,00", "Pago"] },
-    { m: ["Loja Sol", "14 out", "R$ 80,5", "?"], c: ["Loja Sol", "14/10/2026", "R$ 80,50", "Pendente"] },
+  /* ---------- cena 4: planilha bagunçada vira tabela organizada ---------- */
+  var c4 = copyInit("s4"), xlw = $("#xlw"), xlSheet = $("#xlSheet"), xlGut = $("#xlGut"), xlName = $("#xlName"), xlFx = $("#xlFx"), xlStat = $("#xlStat"), xlSum = $("#xlSum"), xlSaved = $("#xlSaved");
+  var c4a = $("#c4a"), c4b = $("#c4b"), c4c = $("#c4c"), r4 = rng(21);
+  var FR = [3.2, 2.2, 2.1, 1.9], FRT = 11, N4 = 11;
+  function mk(tag, cls, parent, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt !== undefined) e.textContent = txt; if (parent) parent.appendChild(e); return e; }
+  for (var gi = 1; gi <= N4; gi++) mk("i", "", xlGut, gi);
+  (function () { var acc = 0; for (var c = 0; c < 4; c++) { acc += FR[c]; mk("b", "vl", xlSheet).style.left = (acc / FRT * 100) + "%"; } })();
+  var HEAD4 = ["Cliente", "Data", "Valor", "Status"];
+  var DATA4 = [
+    { m: ["ANA SILVA", "12/10", "R$50", "pago"], c: ["Ana Silva", "12/10/2026", "R$ 50,00", "Pago"], v: 50 },
+    { m: ["joao p", "2026-10-13", "120", "PAGO"], c: ["João Pereira", "13/10/2026", "R$ 120,00", "Pago"], v: 120 },
+    { m: ["Loja Sol", "14 out", "R$ 80,5", "?"], c: ["Loja Sol", "14/10/2026", "R$ 80,50", "Pendente"], v: 80.5 },
     { m: ["ana silva", "12/10", "R$50", "pago"], dup: 1 },
-    { m: ["Mercado Lua", "15/10", "200.00", "ok"], c: ["Mercado Lua", "15/10/2026", "R$ 200,00", "Pago"] },
+    { m: ["", "", "", ""], empty: 1 },
+    { m: ["Mercado Lua", "15/10", "200.00", "ok"], c: ["Mercado Lua", "15/10/2026", "R$ 200,00", "Pago"], v: 200 },
     { m: ["joao p", "2026-10-13", "120", "PAGO"], dup: 1 },
-    { m: ["  Pedro  ", "16-10", "R$75", "pend."], c: ["Pedro Alves", "16/10/2026", "R$ 75,00", "Pendente"] }
+    { m: ["   Pedro", "16-10", "#VALOR!", "pend."], c: ["Pedro Alves", "16/10/2026", "R$ 75,00", "Pendente"], v: 75 },
+    { m: ["Clara Dias", "########", "60,00", "paga"], c: ["Clara Dias", "17/10/2026", "R$ 60,00", "Pago"], v: 60 },
+    { m: ["Bar do Zé", "17/10", "R$ 340", "PENDENTE"], c: ["Bar do Zé", "17/10/2026", "R$ 340,00", "Pendente"], v: 340 }
   ];
-  var MUD = ["#4A2E5C", "#5C4A1F", "#1F4A5C", "#5C2A2A", "#2E5C3A"];
-  var cells4 = [], rank = 0;
-  function mkCell(txt, ci, yM, yF, opts) {
-    var g = S("g", {}, svg4);
-    S("rect", { x: 0, y: 0, width: CWID[ci] - 4, height: RH - 4, rx: 5, fill: opts.head ? "#16244A" : "#14203F" }, g);
-    var ov = S("rect", { x: 0, y: 0, width: CWID[ci] - 4, height: RH - 4, rx: 5, fill: opts.head ? "#5B8CFF" : MUD[Math.floor(r4() * MUD.length)], opacity: 0 }, g);
-    var tx = S("text", { x: 9, y: RH / 2 - 1, "dominant-baseline": "central", fill: "#E6ECFA", "font-size": 13, "font-family": "IBM Plex Sans, sans-serif", "font-weight": opts.head ? 600 : 400 }, g);
-    tx.textContent = txt;
-    var o = { g: g, ov: ov, tx: tx, ci: ci, yM: yM, yF: yF, r: r4(), dx: (r4() - .5) * 30, dy: (r4() - .5) * 20, rot: (r4() - .5) * 14, mud: r4() < .55 ? .85 : 0, dup: !!opts.dup, head: !!opts.head, m: opts.m, c: opts.c, cur: "" };
-    o.fs = 11 + Math.round(r4() * 4); o.it = r4() < .3;
-    cells4.push(o); return o;
+  var ROWS4 = [], okIdx = 0;
+  function mkRow(cls) {
+    var el = mk("div", "xr " + (cls || ""), xlSheet), cells = [];
+    for (var c = 0; c < 5; c++) { var ce = mk("div", "xc c" + c, el); cells.push({ el: ce, sp: c < 4 ? mk("span", "", ce) : null, clean: null, fl: -1 }); }
+    return { el: el, cells: cells };
   }
-  HEAD.forEach(function (h, ci) { mkCell(h, ci, Y4, Y4, { head: 1, m: h, c: h }); });
-  D4.forEach(function (row, ri) {
-    var yM = Y4 + RH * (1 + ri), yF = row.dup ? yM : Y4 + RH * (1 + rank);
-    if (!row.dup) rank++;
-    for (var ci = 0; ci < 4; ci++) mkCell(row.m[ci], ci, yM, yF, { dup: row.dup, m: row.m[ci], c: row.dup ? row.m[ci] : row.c[ci] });
+  var hdr = mkRow("h0"); hdr.kind = "head";
+  HEAD4.forEach(function (t, c) { hdr.cells[c].sp.textContent = t; });
+  DATA4.forEach(function (d, i) {
+    var r = mkRow(""); r.kind = d.empty ? "empty" : d.dup ? "dup" : "ok"; r.d = d; r.i = i;
+    if (r.kind === "ok") { r.ok = okIdx++; }
+    for (var c = 0; c < 4; c++) {
+      var ce = r.cells[c], cl = ce.el.classList, x;
+      cl.add("m"); ce.sp.textContent = d.m[c];
+      if (d.empty) continue;
+      x = r4(); if (x < 0.13) cl.add("vy"); else if (x < 0.25) cl.add("vp"); else if (x < 0.35) cl.add("vb");
+      if (r4() < 0.12) cl.add("red"); if (r4() < 0.14) cl.add("it"); if (r4() < 0.12) cl.add("bo");
+      x = r4(); if (x < 0.16) cl.add("vc"); else if (x < 0.28) cl.add("vr"); else if (x < 0.36) cl.add("vlf");
+      x = r4(); if (x < 0.16) cl.add("vs"); else if (x < 0.28) cl.add("vg");
+      if (c === 2) { if (d.m[2].charAt(0) === "#") cl.add("er"); else cl.add("tn"); }
+    }
+    if (r.kind === "ok") { r.db = mk("i", "db", r.cells[2].el); r.bw = d.v / 340 * 100; }
+    ROWS4.push(r);
   });
-  var totG = S("g", {}, svg4), totY = Y4 + RH * (1 + rank) + 6;
-  S("rect", { x: 10, y: totY, width: 420 - 10, height: RH - 4, rx: 5, fill: "#1A2F63", stroke: "#5B8CFF", "stroke-width": 1.5 }, totG);
-  var tt1 = S("text", { x: 19, y: totY + RH / 2 - 1, "dominant-baseline": "central", fill: "#E6ECFA", "font-size": 13, "font-weight": 600, "font-family": "IBM Plex Sans, sans-serif" }, totG); tt1.textContent = "Total";
-  var tt2 = S("text", { x: 250, y: totY + RH / 2 - 1, "dominant-baseline": "central", fill: "#7CF0BB", "font-size": 13, "font-weight": 600, "font-family": "IBM Plex Sans, sans-serif" }, totG); tt2.textContent = "R$ 525,50";
-  var c4a = $("#c4a"), c4b = $("#c4b"), c4c = $("#c4c");
+  var tot = mkRow("tot"); tot.cells[0].sp.textContent = "Total"; tot.cells[2].sp.textContent = "R$ 0,00";
+  var sel = mk("div", "sel col", xlSheet), sel2 = mk("div", "sel", xlSheet);
+  var RH4 = 1.8, lastS4 = {};
+  function brl(v) { return "R$ " + v.toFixed(2).replace(".", ","); }
+  function colRect(c) { var l = 0, i; for (i = 0; i < c; i++) l += FR[i]; return [l / FRT * 100, FR[c] / FRT * 100]; }
+  function setTxt(el, key, t) { if (lastS4[key] !== t) { lastS4[key] = t; el.textContent = t; } }
   function u4(p) {
     copyP(c4, p, 0.03, 0.32);
-    var A = seg(p, 0.06, 0.4), N = seg(p, 0.42, 0.56), Dp = seg(p, 0.5, 0.62), C = ease(seg(p, 0.6, 0.76)), H = seg(p, 0.72, 0.84), T = seg(p, 0.82, 0.94);
-    for (var i = 0; i < cells4.length; i++) {
-      var c = cells4[i], a = ease(clamp(A * 1.6 - c.r * 0.6));
-      var x = X4[c.ci], y = c.head ? c.yM : lerp(c.yM, c.yF, C), w = CWID[c.ci] - 4, h = RH - 4;
-      c.g.setAttribute("transform", "translate(" + (x + c.dx * (1 - a) + w / 2).toFixed(1) + " " + (y + c.dy * (1 - a) + h / 2).toFixed(1) + ") rotate(" + (c.rot * (1 - a)).toFixed(2) + ") translate(" + (-w / 2) + " " + (-h / 2) + ")");
-      if (c.head) { c.ov.setAttribute("opacity", H); }
-      else c.ov.setAttribute("opacity", ((1 - a) * c.mud).toFixed(3));
-      var clean = !c.head && (N * 1.4 - c.r * 0.4) > 0.5;
-      var txt = clean ? c.c : c.m;
-      if (txt !== c.cur) { c.cur = txt; c.tx.textContent = txt; }
-      c.tx.setAttribute("font-size", clean || c.head ? 13 : lerp(c.fs, 13, a).toFixed(1));
-      c.tx.setAttribute("font-style", !clean && !c.head && c.it && a < 1 ? "italic" : "normal");
-      c.g.setAttribute("opacity", c.dup ? 1 - Dp : 1);
+    var A = ease(seg(p, 0.04, 0.2)), cf = [seg(p, 0.26, 0.34), seg(p, 0.34, 0.42), seg(p, 0.42, 0.5), seg(p, 0.5, 0.58)];
+    var D1 = seg(p, 0.6, 0.66), D2 = ease(seg(p, 0.66, 0.74)), H = seg(p, 0.75, 0.8), T = seg(p, 0.81, 0.87), B = ease(seg(p, 0.88, 0.97));
+    var xl = $("#xl");
+    xl.style.opacity = A.toFixed(3); xl.style.transform = "translateY(" + ((1 - A) * 26).toFixed(1) + "px) scale(" + (0.965 + 0.035 * A).toFixed(3) + ")";
+    hdr.el.style.top = "0em"; hdr.el.style.height = RH4 + "em"; hdr.el.style.opacity = A;
+    hdr.el.classList.toggle("hd", H > 0.5);
+    var y = 1, i, c, r;
+    for (i = 0; i < ROWS4.length; i++) {
+      r = ROWS4[i];
+      var hf = r.kind === "ok" ? 1 : 1 - D2;
+      r.el.style.top = (y * RH4).toFixed(3) + "em"; r.el.style.height = (RH4 * hf).toFixed(3) + "em";
+      var ra = clamp(seg(p, 0.05, 0.2) * 1.8 - i * 0.09);
+      r.el.style.opacity = (r.kind === "ok" ? ra : ra * (1 - D2)).toFixed(3);
+      y += hf;
+      if (r.kind === "dup") r.el.classList.toggle("dm", D1 > 0.3);
+      if (r.kind === "ok") {
+        r.el.classList.toggle("bd", H > 0.5 && r.ok % 2 === 1);
+        for (c = 0; c < 4; c++) {
+          var ce = r.cells[c], clean = cf[c] > 0.5;
+          if (clean !== ce.clean) {
+            ce.clean = clean; ce.el.classList.toggle("m", !clean); ce.sp.textContent = clean ? r.d.c[c] : r.d.m[c];
+            if (c === 3) { ce.el.classList.toggle("cok", clean && r.d.c[3] === "Pago"); ce.el.classList.toggle("cpd", clean && r.d.c[3] !== "Pago"); }
+          }
+          var fl = cf[c] > 0 && cf[c] < 1 ? Math.sin(Math.PI * cf[c]) : 0, fk = fl.toFixed(2);
+          if (ce.fl !== fk) { ce.fl = fk; ce.el.style.setProperty("--fl", fk); }
+        }
+        r.db.style.width = (r.bw * 0.62 * B).toFixed(1) + "%";
+      }
     }
-    totG.setAttribute("opacity", T);
-    totG.setAttribute("transform", "translate(0 " + ((1 - T) * 12).toFixed(1) + ")");
-    c4a.classList.toggle("on", N > 0.6); c4b.classList.toggle("on", Dp > 0.5); c4c.classList.toggle("on", T > 0.7);
+    tot.el.style.top = (y * RH4).toFixed(3) + "em"; tot.el.style.height = RH4 + "em"; tot.el.style.opacity = T.toFixed(3);
+    var sum = 925.5 * ease(T);
+    setTxt(tot.cells[2].sp, "tot", brl(sum));
+    /* seleção que percorre as colunas */
+    var sp = (p - 0.26) / 0.08, on = p > 0.24 && p < 0.6;
+    if (on) {
+      var ix = clamp(Math.floor(sp), 0, 3), fr = sp - Math.floor(sp), mv = ix > 0 ? ease(clamp(fr * 3)) : 1;
+      var a = colRect(ix > 0 ? ix - 1 : 0), b = colRect(ix), L = lerp(a[0], b[0], mv), Wd = lerp(a[1], b[1], mv);
+      sel.style.left = L + "%"; sel.style.width = Wd + "%"; sel.style.top = RH4 + "em"; sel.style.height = (RH4 * 10) + "em";
+    }
+    sel.style.opacity = on ? 1 : 0;
+    var on2 = T > 0.3 && B < 0.01 || (T > 0.3 && p < 0.9), cr = colRect(2);
+    sel2.style.left = cr[0] + "%"; sel2.style.width = cr[1] + "%"; sel2.style.top = (y * RH4) + "em"; sel2.style.height = RH4 + "em"; sel2.style.opacity = on2 ? 1 : 0;
+    /* barra de fórmulas e status */
+    var nm = "A1", fx = "Cliente", st = "Pronto";
+    var cn = ["A", "B", "C", "D"], fxs = ["=PRI.MAIÚSCULA(ARRUMAR(A2))", "=DATA.VALOR(B2)", "=VALOR(C2)", "=PRI.MAIÚSCULA(D2)"], sts = ["Padronizando nomes…", "Padronizando datas…", "Convertendo valores…", "Padronizando status…"];
+    if (p >= 0.24 && p < 0.58) { var k = clamp(Math.floor(sp), 0, 3); nm = cn[k] + "2:" + cn[k] + "11"; fx = fxs[k]; st = sts[k]; }
+    else if (p >= 0.58 && p < 0.75) { nm = "A2:D11"; fx = "=CONT.SE(A:A;A2)>1"; st = D2 < 0.99 ? "Removendo duplicados…" : "2 duplicados removidos · 7 linhas mantidas"; }
+    else if (p >= 0.75 && p < 0.81) { nm = "A1:D1"; fx = "Cliente"; st = "Formatando como tabela…"; }
+    else if (p >= 0.81) { nm = "C9"; fx = "=SOMA(C2:C8)"; st = T < 0.99 ? "Calculando…" : "Pronto"; }
+    setTxt(xlName, "nm", nm); setTxt(xlFx, "fx", fx); setTxt(xlStat, "st", st);
+    setTxt(xlSum, "sum", T > 0.5 ? "Média: R$ 132,21   Soma: R$ 925,50" : "");
+    var sv = B > 0.95; if (lastS4.sv !== sv) { lastS4.sv = sv; xlSaved.textContent = sv ? "✓ salvo" : "● não salvo"; xlSaved.classList.toggle("saved", sv); }
+    c4a.classList.toggle("on", p > 0.58); c4b.classList.toggle("on", D2 > 0.5); c4c.classList.toggle("on", T > 0.7);
   }
 
   /* ---------- cena 5: computador sendo montado ---------- */
@@ -521,7 +811,7 @@ var CONFIG = { nome: "Ruan Dener", whatsapp: "5564984450981" };
     });
     dotsBox.appendChild(b); dotBtns.push(b);
   });
-  function onResize() { vh = window.innerHeight; setup1(); measure6(); scenes.forEach(function (s) { s.last = -1; }); }
+  function onResize() { vh = window.innerHeight; setup1(); setup3(); measure6(); scenes.forEach(function (s) { s.last = -1; }); }
   window.addEventListener("resize", onResize);
 
   var prev = performance.now();
@@ -574,7 +864,7 @@ var CONFIG = { nome: "Ruan Dener", whatsapp: "5564984450981" };
       var t = performance.now();
       scenes.forEach(function (s, i) { if (!s.started) { s.started = true; s.t0 = t + i * 9000; } });
     }, 2500);
-    setTimeout(function () { setup1(); measure6(); }, 60);
+    setTimeout(function () { setup1(); setup3(); measure6(); }, 60);
   }
   function detectFlow() {
     var y0 = window.pageYOffset;
@@ -591,7 +881,7 @@ var CONFIG = { nome: "Ruan Dener", whatsapp: "5564984450981" };
   function boot() {
     if (started) return;
     started = true;
-    setup1(); measure6();
+    setup1(); setup3(); measure6();
     requestAnimationFrame(frame);
     if (/[?&]flow\b/.test(location.search)) enableFlow(); else setTimeout(detectFlow, 700);
   }

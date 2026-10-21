@@ -55,7 +55,7 @@ var CONFIG = { nome: "Ruan Dener", whatsapp: "5564984450981" };
     var sc = $("#" + id), h = $("h2", sc);
     var ws = h.textContent.trim().split(/\s+/);
     h.innerHTML = ws.map(function (w) { return '<span class="w">' + w + "</span>"; }).join(" ");
-    return { ws: $$(".w", h), p: $(".copy > p:not(.eyebrow)", sc) };
+    return { ws: $$(".w", h), p: $(".copy > .cb", sc) };
   }
   function copyP(c, p, a, b) {
     var tp = seg(p, a, b), n = c.ws.length;
@@ -722,77 +722,240 @@ var CONFIG = { nome: "Ruan Dener", whatsapp: "5564984450981" };
     c4a.classList.toggle("on", p > 0.58); c4b.classList.toggle("on", D2 > 0.5); c4c.classList.toggle("on", T > 0.7);
   }
 
-  /* ---------- cena 5: computador sendo montado ---------- */
-  var c5 = copyInit("s5"), svg5 = $("#svg5");
-  svg5.innerHTML =
-    '<rect x="165" y="50" width="250" height="310" rx="14" fill="#0B1428" stroke="#5B8CFF" stroke-width="3"/>' +
-    '<circle id="led5" cx="392" cy="72" r="5" fill="#2A3F78"/>' +
-    '<g id="p0"><rect x="182" y="316" width="200" height="34" rx="5" fill="#22346A" stroke="#5B8CFF" stroke-width="1.5"/>' +
-    '<path d="M200 326 H240 M200 332 H240 M200 338 H240" stroke="#3F5CA8" stroke-width="2"/>' +
-    '<text x="312" y="338" text-anchor="middle" font-size="11" fill="#8FB0FF" font-family="IBM Plex Mono, monospace">FONTE</text></g>' +
-    '<g id="p1"><rect x="182" y="68" width="200" height="238" rx="6" fill="#12306B" stroke="#3F6FD8" stroke-width="2"/>' +
-    '<path d="M198 88 H300 M198 108 V225 H258 M366 88 V196 M300 222 H366 M198 250 H290" stroke="#2A57B8" stroke-width="2" fill="none"/>' +
-    '<circle cx="198" cy="88" r="3" fill="#2A57B8"/><circle cx="366" cy="88" r="3" fill="#2A57B8"/><circle cx="366" cy="196" r="3" fill="#2A57B8"/><circle cx="258" cy="225" r="3" fill="#2A57B8"/></g>' +
-    '<g id="p2"><rect x="222" y="112" width="54" height="54" rx="4" fill="#2A4FA8" stroke="#8FB0FF" stroke-width="2"/><rect x="232" y="122" width="34" height="34" rx="2" fill="#1B3677"/>' +
-    '<text x="249" y="143" text-anchor="middle" font-size="10" fill="#CFE0FF" font-family="IBM Plex Mono, monospace">CPU</text></g>' +
-    '<g id="p3"><g id="fan"><circle cx="249" cy="139" r="34" fill="#0F1830" fill-opacity=".92" stroke="#5B8CFF" stroke-width="2"/>' +
-    '<ellipse cx="249" cy="121" rx="9" ry="17" fill="#5B8CFF" fill-opacity=".6"/>' +
-    '<ellipse cx="249" cy="121" rx="9" ry="17" fill="#5B8CFF" fill-opacity=".6" transform="rotate(90 249 139)"/>' +
-    '<ellipse cx="249" cy="121" rx="9" ry="17" fill="#5B8CFF" fill-opacity=".6" transform="rotate(180 249 139)"/>' +
-    '<ellipse cx="249" cy="121" rx="9" ry="17" fill="#5B8CFF" fill-opacity=".6" transform="rotate(270 249 139)"/>' +
-    '<circle cx="249" cy="139" r="6" fill="#8FB0FF"/></g></g>' +
-    '<g id="p4"><rect x="318" y="92" width="11" height="108" rx="2" fill="#8FB0FF"/><rect x="336" y="92" width="11" height="108" rx="2" fill="#8FB0FF"/>' +
-    '<rect x="320" y="104" width="7" height="14" fill="#0F1830"/><rect x="320" y="130" width="7" height="14" fill="#0F1830"/><rect x="338" y="104" width="7" height="14" fill="#0F1830"/><rect x="338" y="130" width="7" height="14" fill="#0F1830"/></g>' +
-    '<g id="p5"><rect x="198" y="232" width="100" height="38" rx="5" fill="#1A2B55" stroke="#5B8CFF" stroke-width="1.5"/>' +
-    '<text x="248" y="256" text-anchor="middle" font-size="12" fill="#8FB0FF" font-family="IBM Plex Mono, monospace">SSD</text></g>' +
-    '<g id="p6"><rect x="165" y="50" width="250" height="310" rx="14" fill="rgba(91,140,255,0.13)" stroke="#8FB0FF" stroke-width="2"/><polygon points="165,250 415,110 415,175 165,315" fill="rgba(255,255,255,0.05)"/></g>' +
-    '<text id="boot5" x="290" y="30" text-anchor="middle" font-size="14" fill="#7CF0BB" font-family="IBM Plex Mono, monospace" opacity="0">Sistema iniciado</text>';
-  var PART5 = [
-    { c: [282, 333], o: [-130, 40], r: 6 }, { c: [282, 187], o: [-165, -25], r: -8 }, { c: [249, 139], o: [-110, -95], r: 12 },
-    { c: [249, 139], o: [150, -90], r: -15 }, { c: [332, 146], o: [190, -30], r: 10 }, { c: [248, 251], o: [-150, 115], r: -6 }, { c: [290, 205], o: [170, 0], r: 0 }
+  /* ---------- cena 5: PC aberto sendo montado, peça por peça ---------- */
+  var c5 = copyInit("s5"), svg5 = $("#svg5"), chips5 = $$("#chips5 .chip");
+  var MONO5 = 'font-family="IBM Plex Mono, monospace"', SANS5 = 'font-family="IBM Plex Sans, sans-serif"';
+  function fan5(id, cx, cy, r, n, col) {
+    var b = '<g id="' + id + '">', i;
+    for (i = 0; i < n; i++) b += '<path d="M' + cx + " " + cy + " C" + (cx + r * 0.15) + " " + (cy - r * 0.45) + " " + (cx + r * 0.66) + " " + (cy - r * 0.8) + " " + (cx + r * 0.36) + " " + (cy - r * 0.94) + " C" + (cx + r * 0.04) + " " + (cy - r * 0.96) + " " + (cx - r * 0.2) + " " + (cy - r * 0.55) + " " + cx + " " + cy + ' Z" fill="' + col + '" transform="rotate(' + (i * 360 / n).toFixed(1) + " " + cx + " " + cy + ')"/>';
+    return b + '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r * 0.22) + '" fill="url(#hub5)"/></g>';
+  }
+  function fins(x, y, w, h, vertical, step) {
+    var s = "", k;
+    if (vertical) for (k = step; k < w; k += step) s += '<line x1="' + (x + k) + '" y1="' + (y + 2) + '" x2="' + (x + k) + '" y2="' + (y + h - 2) + '"/>';
+    else for (k = step; k < h; k += step) s += '<line x1="' + (x + 2) + '" y1="' + (y + k) + '" x2="' + (x + w - 2) + '" y2="' + (y + k) + '"/>';
+    return '<g stroke="rgba(255,255,255,.16)" stroke-width="1">' + s + "</g>";
+  }
+  var S5 = [], i5;
+  S5.push('<defs>',
+    '<linearGradient id="case5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2A3560"/><stop offset=".5" stop-color="#121A36"/><stop offset="1" stop-color="#232E55"/></linearGradient>',
+    '<linearGradient id="psu5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34406C"/><stop offset="1" stop-color="#171E3A"/></linearGradient>',
+    '<linearGradient id="pcb5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1B2347"/><stop offset="1" stop-color="#0F1530"/></linearGradient>',
+    '<linearGradient id="heat5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6275B0"/><stop offset=".5" stop-color="#3B4B82"/><stop offset="1" stop-color="#27335F"/></linearGradient>',
+    '<linearGradient id="metal5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F7FD"/><stop offset=".5" stop-color="#B7C3DC"/><stop offset="1" stop-color="#7C8AAA"/></linearGradient>',
+    '<linearGradient id="gold5" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F6DA85"/><stop offset="1" stop-color="#B8902E"/></linearGradient>',
+    '<linearGradient id="cu5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F0A678"/><stop offset="1" stop-color="#A9552F"/></linearGradient>',
+    '<linearGradient id="gpu5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2E3B6C"/><stop offset="1" stop-color="#151C38"/></linearGradient>',
+    '<linearGradient id="glass5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9DB6FF" stop-opacity=".16"/><stop offset=".5" stop-color="#9DB6FF" stop-opacity=".04"/><stop offset="1" stop-color="#9DB6FF" stop-opacity=".12"/></linearGradient>',
+    '<radialGradient id="hub5"><stop offset="0" stop-color="#E6ECFA"/><stop offset="1" stop-color="#6275B0"/></radialGradient>',
+    '<radialGradient id="shd5"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>',
+    '<pattern id="lga5" width="4" height="4" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#B8902E"/></pattern>',
+    '<clipPath id="cav5"><rect x="176" y="30" width="288" height="380" rx="8"/></clipPath>',
+    '</defs>',
+    '<ellipse cx="320" cy="432" rx="190" ry="9" fill="url(#shd5)"/>',
+    '<rect x="188" y="424" width="26" height="8" rx="2" fill="#0B1020"/><rect x="426" y="424" width="26" height="8" rx="2" fill="#0B1020"/>',
+    '<rect x="160" y="14" width="320" height="412" rx="14" fill="url(#case5)" stroke="#4A5C96" stroke-width="1.6"/>',
+    '<rect x="176" y="30" width="288" height="380" rx="8" fill="#060A16"/>',
+    '<circle id="led5" cx="452" cy="22" r="3" fill="#2A3F78"/>',
+    '<g clip-path="url(#cav5)">',
+    /* sombra da fonte e furos de organização de cabos */
+    '<rect x="176" y="346" width="288" height="64" fill="#0A1022"/><g stroke="#16204A" stroke-width="2">' + (function () { var s = "", k; for (k = 0; k < 9; k++) s += '<line x1="' + (352 + k * 11) + '" y1="356" x2="' + (352 + k * 11) + '" y2="400"/>'; return s; })() + "</g>",
+    '<rect x="448" y="112" width="12" height="26" rx="5" fill="#0E1530" stroke="#1F2B52"/><rect x="448" y="178" width="12" height="26" rx="5" fill="#0E1530" stroke="#1F2B52"/><rect x="448" y="244" width="12" height="26" rx="5" fill="#0E1530" stroke="#1F2B52"/>',
+    /* 0: fonte */
+    '<g id="q0"><rect x="186" y="352" width="164" height="52" rx="5" fill="url(#psu5)" stroke="#4A5C96"/>',
+    '<circle cx="268" cy="378" r="20" fill="#0A0F1D" stroke="#5B6FA8"/><circle cx="268" cy="378" r="13" fill="none" stroke="#2C3A68"/><circle cx="268" cy="378" r="6" fill="none" stroke="#2C3A68"/><path d="M248 378 H288 M268 358 V398 M254 364 L282 392 M282 364 L254 392" stroke="#2C3A68"/>',
+    '<text x="324" y="372" text-anchor="end" ' + MONO5 + ' font-size="11" font-weight="600" fill="#E6ECFA">650W</text><text x="324" y="383" text-anchor="end" ' + MONO5 + ' font-size="6" fill="#8FA0C4">80+ BRONZE</text>',
+    '<rect x="192" y="360" width="26" height="34" rx="2" fill="#0A0F1D"/><g fill="#2C3A68"><rect x="195" y="364" width="9" height="5"/><rect x="206" y="364" width="9" height="5"/><rect x="195" y="372" width="9" height="5"/><rect x="206" y="372" width="9" height="5"/><rect x="195" y="380" width="9" height="5"/><rect x="206" y="380" width="9" height="5"/></g></g>',
+    /* 1: placa-mãe */
+    '<g id="q1"><rect x="214" y="48" width="236" height="292" rx="6" fill="rgba(0,0,0,.45)" transform="translate(4 6)"/>',
+    '<rect x="212" y="46" width="236" height="292" rx="6" fill="url(#pcb5)" stroke="#2C3A68"/>',
+    '<g stroke="#1F2B52" stroke-width="1.2" fill="none"><path d="M228 200 H252 V250 H300"/><path d="M228 214 H246 V262 H300"/><path d="M360 190 V226 H420"/><path d="M366 190 V232 H424"/><path d="M230 300 H350 V316 H388"/><path d="M230 306 H344 V322 H388"/><path d="M262 190 H340"/></g>',
+    '<rect x="190" y="58" width="24" height="88" fill="#18204A" stroke="#3A4A7A"/><g fill="#0A0F1D" stroke="#4A5C96" stroke-width=".6"><rect x="194" y="63" width="16" height="9"/><rect x="194" y="76" width="16" height="9"/><rect x="194" y="89" width="16" height="9"/><rect x="194" y="102" width="16" height="9"/></g><circle cx="202" cy="124" r="3" fill="#5B8CFF"/><circle cx="202" cy="134" r="3" fill="#3DDC97"/>',
+    '<rect x="256" y="56" width="124" height="28" rx="3" fill="url(#heat5)" stroke="#6275B0" stroke-width=".6"/>' + fins(256, 56, 124, 28, true, 6),
+    '<rect x="222" y="92" width="28" height="108" rx="3" fill="url(#heat5)" stroke="#6275B0" stroke-width=".6"/>' + fins(222, 92, 28, 108, false, 6),
+    '<rect x="254" y="96" width="88" height="88" rx="4" fill="#0B1022" stroke="#8795B3" stroke-width="1.4"/><rect x="260" y="102" width="76" height="76" fill="url(#lga5)" opacity=".55"/>',
+    '<g fill="#2A3560" stroke="#8795B3" stroke-width=".6"><circle cx="262" cy="190" r="2.4"/><circle cx="272" cy="190" r="2.4"/><circle cx="282" cy="190" r="2.4"/><circle cx="350" cy="96" r="2.4"/><circle cx="350" cy="108" r="2.4"/><circle cx="350" cy="120" r="2.4"/><circle cx="382" cy="92" r="2.4"/></g>',
+    (function () { var s = "", k; for (k = 0; k < 4; k++) { var x = 378 + k * 14; s += '<rect x="' + x + '" y="58" width="10" height="130" rx="1.5" fill="#0A0F1D" stroke="#2C3A68" stroke-width=".8"/><rect x="' + (x - 1) + '" y="52" width="12" height="6" rx="1" fill="#2C3A68"/><rect x="' + (x - 1) + '" y="188" width="12" height="6" rx="1" fill="#2C3A68"/>'; } return s; })(),
+    '<rect x="428" y="200" width="18" height="62" rx="2" fill="#0A0F1D" stroke="#4A5C96"/><g fill="#B8902E">' + (function () { var s = "", r, c; for (r = 0; r < 12; r++) for (c = 0; c < 2; c++) s += '<rect x="' + (431 + c * 7) + '" y="' + (203 + r * 4.8) + '" width="4.6" height="3" />'; return s; })() + "</g>",
+    '<rect x="430" y="272" width="16" height="8" rx="1.5" fill="#0A0F1D" stroke="#4A5C96" stroke-width=".7"/><rect x="430" y="284" width="16" height="8" rx="1.5" fill="#0A0F1D" stroke="#4A5C96" stroke-width=".7"/>',
+    '<rect x="262" y="206" width="80" height="12" rx="2" fill="#0A0F1D" stroke="#2C3A68"/><circle cx="346" cy="212" r="3" fill="url(#gold5)"/>',
+    '<rect x="226" y="228" width="162" height="10" rx="2" fill="#0A0F1D" stroke="#2C3A68"/><rect x="226" y="292" width="162" height="10" rx="2" fill="#0A0F1D" stroke="#2C3A68"/>',
+    '<rect x="392" y="308" width="44" height="30" rx="3" fill="url(#heat5)" stroke="#6275B0" stroke-width=".6"/>' + fins(392, 308, 44, 30, false, 5) + '<path d="M414 316 l6 7 l-6 7 l-6 -7 Z" fill="none" stroke="#C3CFEA" stroke-width="1" opacity=".7"/>',
+    '<circle cx="362" cy="318" r="10" fill="#C9D2E6" stroke="#8E9CBA"/><circle cx="362" cy="318" r="6" fill="#9AA8C4"/>',
+    '<text x="232" y="326" ' + MONO5 + ' font-size="7" fill="#5C6D9E">B660M · PRO</text><text x="232" y="334" ' + MONO5 + ' font-size="5.5" fill="#3F4F80">ATX · DDR4 · PCIe 4.0</text>',
+    '<g fill="#8E9CBA"><circle cx="222" cy="56" r="2.6"/><circle cx="438" cy="56" r="2.6"/><circle cx="222" cy="328" r="2.6"/><circle cx="438" cy="328" r="2.6"/><circle cx="224" cy="262" r="2.6"/></g></g>',
+    /* 2: processador */
+    '<g id="q2"><rect x="260" y="102" width="76" height="76" rx="3" fill="#1D3866" stroke="#8795B3" stroke-width=".8"/><rect x="268" y="110" width="60" height="60" rx="6" fill="url(#metal5)" stroke="#5A6A8E" stroke-width=".8"/><text x="298" y="136" text-anchor="middle" ' + SANS5 + ' font-size="9" font-weight="700" fill="#4E5E82">CORE</text><text x="298" y="150" text-anchor="middle" ' + SANS5 + ' font-size="12" font-weight="700" fill="#4E5E82">i5</text><text x="298" y="162" text-anchor="middle" ' + MONO5 + ' font-size="5.5" fill="#6A7A9E">12600K · 4.9GHz</text><path d="M262 104 l8 0 l-8 8 Z" fill="url(#gold5)"/></g>',
+    /* 3: cooler */
+    '<g id="q3"><rect x="254" y="86" width="88" height="8" rx="2" fill="url(#cu5)"/><rect x="262" y="82" width="72" height="5" rx="2" fill="url(#cu5)"/>',
+    '<rect x="248" y="92" width="100" height="100" rx="12" fill="url(#heat5)" stroke="#8795B3" stroke-width="1"/><circle cx="298" cy="142" r="42" fill="#080D1C" stroke="#2C3A68"/><circle id="ring5a" class="ring5" cx="298" cy="142" r="40" fill="none" stroke="#5B8CFF" stroke-width="2.4" opacity=".55"/>',
+    fan5("fanA", 298, 142, 36, 9, "#33447C"),
+    '<g fill="#C3CFEA"><circle cx="256" cy="100" r="2"/><circle cx="340" cy="100" r="2"/><circle cx="256" cy="184" r="2"/><circle cx="340" cy="184" r="2"/></g></g>',
+    /* 4: memória */
+    '<g id="q4">' + (function () { var s = "", xs = [392, 420], k; for (k = 0; k < 2; k++) { var x = xs[k]; s += '<rect x="' + (x - 1) + '" y="52" width="12" height="136" rx="2" fill="#10183A" stroke="#4A5C96" stroke-width=".7"/><rect x="' + x + '" y="62" width="10" height="104" rx="1.5" fill="url(#heat5)"/><rect x="' + (x + 1.5) + '" y="55" width="7" height="6" rx="1" fill="#5B8CFF" opacity=".85"/><g stroke="rgba(255,255,255,.2)">' + (function () { var t = "", y; for (y = 70; y < 164; y += 7) t += '<line x1="' + x + '" y1="' + y + '" x2="' + (x + 10) + '" y2="' + y + '"/>'; return t; })() + '</g><rect x="' + x + '" y="170" width="10" height="16" fill="url(#gold5)"/>'; } return s; })() + "</g>",
+    /* 5: ssd m.2 */
+    '<g id="q5"><rect x="258" y="203" width="84" height="16" rx="2" fill="#16224A" stroke="#5B8CFF" stroke-width=".9"/><rect x="258" y="203" width="7" height="16" fill="url(#gold5)"/><g fill="#0A0F1D" stroke="#9AA8C4" stroke-width=".6"><rect x="268" y="206" width="19" height="10"/><rect x="290" y="206" width="19" height="10"/><rect x="312" y="206" width="14" height="10"/></g><text x="297" y="214" text-anchor="middle" ' + MONO5 + ' font-size="4.5" fill="#8FB0FF">NVMe</text><circle cx="338" cy="211" r="2.6" fill="#C3CFEA"/></g>',
+    /* 6: placa de vídeo */
+    '<g id="q6"><rect x="218" y="230" width="226" height="62" rx="7" fill="rgba(0,0,0,.45)"/><rect x="214" y="224" width="226" height="62" rx="7" fill="url(#gpu5)" stroke="#6275B0" stroke-width="1"/><rect x="214" y="224" width="226" height="5" rx="2.5" fill="#5B8CFF" opacity=".5"/><circle cx="268" cy="257" r="24" fill="#080D1C" stroke="#2C3A68"/><circle class="ring5" cx="268" cy="257" r="23" fill="none" stroke="#5B8CFF" stroke-width="1.8" opacity=".55"/>' + fan5("fanB", 268, 257, 21, 7, "#33447C") + '<circle cx="332" cy="257" r="24" fill="#080D1C" stroke="#2C3A68"/><circle class="ring5" cx="332" cy="257" r="23" fill="none" stroke="#5B8CFF" stroke-width="1.8" opacity=".55"/>' + fan5("fanC", 332, 257, 21, 7, "#33447C"),
+    '<text x="408" y="262" text-anchor="middle" ' + MONO5 + ' font-size="9" font-weight="600" fill="#C3CFEA">8 GB</text><text x="408" y="272" text-anchor="middle" ' + MONO5 + ' font-size="5.5" fill="#6A7A9E">GDDR6</text><rect x="426" y="232" width="14" height="20" rx="2" fill="#0A0F1D" stroke="#4A5C96" stroke-width=".7"/><rect x="226" y="286" width="150" height="3" fill="url(#gold5)"/></g>',
+    /* 7: cabos */
+    '<path id="cb1" d="M338 378 C404 384 458 372 458 332 L458 288 C458 274 448 266 440 264" fill="none" stroke="#0A0F1D" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 1000"/>',
+    '<path id="cb1b" d="M338 378 C404 384 458 372 458 332 L458 288 C458 274 448 266 440 264" fill="none" stroke="#3A4A7A" stroke-width="6" stroke-linecap="round" stroke-dasharray="0 1000"/>',
+    '<path id="cb2" d="M338 366 C416 368 440 356 440 330 L440 304 C440 296 436 292 430 290" fill="none" stroke="#0A0F1D" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 1000"/>',
+    '<path id="cb2b" d="M338 366 C416 368 440 356 440 330 L440 304 C440 296 436 292 430 290" fill="none" stroke="#5B6FA8" stroke-width="4" stroke-linecap="round" stroke-dasharray="0 1000"/>',
+    '</g>',
+    /* vidro lateral */
+    '<g id="glass5" opacity="0"><rect x="176" y="30" width="288" height="380" rx="8" fill="url(#glass5)" stroke="#9DB6FF" stroke-opacity=".5"/><g clip-path="url(#cav5)"><polygon id="shine5" points="176,30 236,30 176,150" fill="#fff" opacity=".1"/><polygon points="464,410 404,410 464,300" fill="#fff" opacity=".05"/></g><g fill="#C3CFEA"><circle cx="186" cy="40" r="3"/><circle cx="454" cy="40" r="3"/><circle cx="186" cy="400" r="3"/><circle cx="454" cy="400" r="3"/></g></g>');
+  /* etiquetas das peças */
+  var LB5 = [
+    { t: "Fonte 650 W", x1: 154, x2: 186, y: 378, side: "l" },
+    { t: "Placa-mãe", x1: 154, x2: 213, y: 170, side: "l" },
+    { t: "Processador", x1: 154, x2: 262, y: 116, side: "l" },
+    { t: "Cooler", x1: 486, x2: 348, y: 100, side: "r" },
+    { t: "Memória 16 GB", x1: 486, x2: 432, y: 130, side: "r" },
+    { t: "SSD 512 GB", x1: 154, x2: 262, y: 211, side: "l" },
+    { t: "Placa de vídeo", x1: 486, x2: 440, y: 262, side: "r" },
+    { t: "Cabos", x1: 486, x2: 458, y: 330, side: "r" }
   ];
-  PART5.forEach(function (P, i) { P.g = $("#p" + i, svg5); });
-  var fan5 = $("#fan", svg5), led5 = $("#led5", svg5), boot5 = $("#boot5", svg5), chips5 = $$("#chips5 .chip");
+  LB5.forEach(function (L, i) {
+    var left = L.side === "l";
+    S5.push('<g id="lb' + i + '" opacity="0"><line x1="' + L.x1 + '" y1="' + L.y + '" x2="' + L.x2 + '" y2="' + L.y + '" stroke="#8FB0FF" stroke-opacity=".55" stroke-width="1"/><circle cx="' + L.x2 + '" cy="' + L.y + '" r="2.6" fill="#8FB0FF"/><text x="' + (left ? L.x1 - 5 : L.x1 + 5) + '" y="' + (L.y + 4) + '" text-anchor="' + (left ? "end" : "start") + '" ' + SANS5 + ' font-size="11.5" font-weight="500" fill="#C9D6F5">' + L.t + "</text></g>");
+  });
+  svg5.innerHTML = S5.join("");
+  var P5 = [
+    { ox: -150, oy: 70, r: -5, cx: 270, cy: 378 }, { ox: -170, oy: -12, r: 4, cx: 330, cy: 190 }, { ox: 0, oy: -150, r: 7, cx: 298, cy: 140 },
+    { ox: 130, oy: -130, r: -7, cx: 298, cy: 142 }, { ox: 0, oy: -170, r: 0, cx: 410, cy: 120 }, { ox: -160, oy: 24, r: -4, cx: 300, cy: 211 },
+    { ox: 190, oy: 40, r: 3, cx: 330, cy: 255 }
+  ];
+  P5.forEach(function (P, i) { P.g = $("#q" + i, svg5); P.lb = $("#lb" + i, svg5); });
+  var cabL = [$("#cb1", svg5), $("#cb1b", svg5), $("#cb2", svg5), $("#cb2b", svg5)], cabLen = cabL.map(function (e) { return e.getTotalLength(); });
+  var lbCab = $("#lb7", svg5), glass5 = $("#glass5", svg5), shine5 = $("#shine5", svg5), led5 = $("#led5", svg5);
+  var fanEls = [["fanA", 298, 142, 1], ["fanB", 268, 257, -1], ["fanC", 332, 257, 1]].map(function (f) { return { g: $("#" + f[0], svg5), cx: f[1], cy: f[2], d: f[3] }; });
+  var rings5 = $$(".ring5", svg5);
   function u5(p) {
     copyP(c5, p, 0.04, 0.34);
-    for (var i = 0; i < PART5.length; i++) {
-      var P = PART5[i], t = seg(p, 0.06 + i * 0.105, 0.06 + i * 0.105 + 0.14), e = ease(t);
-      P.g.setAttribute("transform", "translate(" + (P.o[0] * (1 - e)).toFixed(1) + " " + (P.o[1] * (1 - e)).toFixed(1) + ") rotate(" + (P.r * (1 - e)).toFixed(2) + " " + P.c[0] + " " + P.c[1] + ")");
-      chips5[i].classList.toggle("on", t >= 0.999);
+    var i, t, e, last = 0;
+    for (i = 0; i < P5.length; i++) {
+      var P = P5[i], s0 = 0.05 + i * 0.095;
+      t = seg(p, s0, s0 + 0.12); e = 1 - Math.pow(1 - t, 3);
+      P.g.setAttribute("transform", "translate(" + (P.ox * (1 - e)).toFixed(1) + " " + (P.oy * (1 - e)).toFixed(1) + ") rotate(" + (P.r * (1 - e)).toFixed(2) + " " + P.cx + " " + P.cy + ")");
+      P.g.setAttribute("opacity", seg(t, 0, 0.3).toFixed(3));
+      P.lb.setAttribute("opacity", seg(t, 0.75, 1).toFixed(3));
     }
-    fan5.setAttribute("transform", "rotate(" + (p * 1440).toFixed(1) + " 249 139)");
-    var b = seg(p, 0.88, 0.97);
-    boot5.setAttribute("opacity", b); led5.setAttribute("fill", b > 0.1 ? "#3DDC97" : "#2A3F78");
+    var cb = seg(p, 0.05 + 7 * 0.095, 0.05 + 7 * 0.095 + 0.1);
+    cabL.forEach(function (el, k) { var L = cabLen[k] * (k < 2 ? ease(cb) : ease(clamp(cb * 1.15 - 0.1))); el.setAttribute("stroke-dasharray", L.toFixed(1) + " 1000"); });
+    lbCab.setAttribute("opacity", seg(cb, 0.8, 1).toFixed(3));
+    var gp = ease(seg(p, 0.83, 0.9)), b = seg(p, 0.91, 0.98);
+    glass5.setAttribute("opacity", seg(p, 0.83, 0.86).toFixed(3));
+    glass5.setAttribute("transform", "translate(" + ((1 - gp) * 330).toFixed(1) + " 0)");
+    shine5.setAttribute("transform", "translate(" + (seg(p, 0.9, 1) * 190).toFixed(1) + " " + (seg(p, 0.9, 1) * 90).toFixed(1) + ")");
+    var spin = p * 2600 + b * p * 1800;
+    fanEls.forEach(function (f) { f.g.setAttribute("transform", "rotate(" + (spin * f.d).toFixed(1) + " " + f.cx + " " + f.cy + ")"); });
+    var hue = (p * 900) % 360;
+    rings5.forEach(function (r) { r.setAttribute("stroke", b > 0.02 ? "hsl(" + hue.toFixed(0) + ",90%,62%)" : "#5B8CFF"); r.setAttribute("opacity", (0.55 + 0.45 * b).toFixed(2)); });
+    led5.setAttribute("fill", b > 0.05 ? "#3DDC97" : "#2A3F78");
+    chips5[0].classList.toggle("on", p > 0.5); chips5[1].classList.toggle("on", p > 0.9); chips5[2].classList.toggle("on", b > 0.85);
   }
 
-  /* ---------- cena 6: prompt ruim vs prompt estruturado ---------- */
-  var c6 = copyInit("s6");
-  var T6 = {
-    u1: "faz um texto pra minha loja",
-    a1: "Claro! Venha conhecer nossa loja. Temos produtos de qualidade e ótimos preços para você.",
-    u2: '{\n  "papel": "social media de loja de bairro",\n  "tarefa": "legenda de Instagram",\n  "oferta": "camisetas a R$ 39 até domingo",\n  "tom": "animado e curto",\n  "formato": "legenda + 3 hashtags"\n}',
-    a2: "Camisetas a R$ 39 só até domingo! Passe aqui e escolha a sua. #camisetas #promoção #lojadebairro"
-  };
-  var E6 = { u1: $("#u1"), a1: $("#a1"), u2: $("#u2"), a2: $("#a2"), m1: $("#m1"), m2: $("#m2"), m3: $("#m3"), m4: $("#m4"), t1: $("#t1"), t2: $("#t2"), rounds: $("#rounds"), r1: $("#r1") };
-  var shift6 = 0;
-  function measure6() { shift6 = E6.r1.offsetHeight + 22; }
-  function typeTo(el, box, key, t) {
-    var s = T6[key], n = Math.floor(clamp(t) * s.length);
-    el.textContent = s.slice(0, n);
-    box.style.opacity = t > 0 ? 1 : 0;
-    var span = el.parentNode.classList.contains("msg") ? el.parentNode : el;
-    span.classList.toggle("typing", t > 0 && t < 1);
+  /* ---------- cena 6: o mesmo pedido com um prompt comum e com um prompt bem montado ---------- */
+  var c6 = copyInit("s6"), body6 = $("#c6body"), thread6 = $("#c6thread"), th6 = $("#th6"), cin = $("#cin"), cph = $("#cph"), csend = $("#csend");
+  var KEY6 = ["k1", "k2", "k3", "k4", "k5"].map(function (id) { return $("#" + id); });
+  var CRIT = ["Preço da oferta", "Prazo (até domingo)", "Tom da loja", "Formato Instagram", "3 hashtags"];
+  var PROMPT1 = "faz um texto pra minha loja";
+  var PROMPT2 = '{\n  "papel": "social media de loja de bairro",\n  "tarefa": "legenda de Instagram",\n  "oferta": "camisetas a R$ 39 até domingo",\n  "tom": "animado, direto, até 3 linhas",\n  "formato": "legenda + 3 hashtags",\n  "evitar": "clichês como melhores preços"\n}';
+  function jhl(s) { return esc(s).replace(/("[^"\n]*"?)(\s*:)?/g, function (m, str, col) { return '<span class="' + (col ? "jk" : "js") + '">' + str + "</span>" + (col || ""); }); }
+  $("#j4").innerHTML = jhl(PROMPT2);
+  function words6(parent, text, store) { text.split(" ").forEach(function (w) { var s = document.createElement("span"); s.className = "w6"; s.textContent = w + " "; parent.appendChild(s); store.push(s); }); }
+  function el6(tag, cls, parent) { var e = document.createElement(tag); if (cls) e.className = cls; if (parent) parent.appendChild(e); return e; }
+  function scoreBlock(parent, good) {
+    var d = el6("div", "c6-score", parent);
+    d.innerHTML = '<div class="c6-sh"><span>Atende ao que você precisava?</span><b class="' + (good ? "gd" : "bd") + '">0/5</b></div><div class="c6-ch"></div>';
+    var box = $(".c6-ch", d), chips = CRIT.map(function (t) { var c = el6("span", "c6-c " + (good ? "ok" : "x"), box); c.textContent = t; return c; });
+    return { el: d, chips: chips, num: $("b", d), n: -1 };
+  }
+  var A1 = { words: [], n: 0 }, A2 = { words: [], n: 0 }, B2 = $("#b2"), B5 = $("#b5"), NOTE1, S1, S2;
+  (function () {
+    var p, w;
+    p = el6("p", "", B2); words6(p, "Claro! Aqui vai um texto para a sua loja:", A1.words);
+    p = el6("p", "bd", B2); words6(p, "Bem-vindo à nossa loja!", A1.words);
+    p = el6("p", "", B2); words6(p, "Aqui você encontra", A1.words);
+    w = el6("span", "weak", p); words6(w, "os melhores produtos com os melhores preços.", A1.words);
+    w = el6("span", "weak", p); words6(w, "Qualidade e atendimento que você merece,", A1.words);
+    words6(p, "com opções para", A1.words);
+    w = el6("span", "weak", p); words6(w, "todos os gostos.", A1.words);
+    p = el6("p", "", B2); words6(p, "Venha nos visitar e confira! Se quiser, posso adaptar o texto.", A1.words);
+    NOTE1 = el6("p", "c6-note", B2); NOTE1.textContent = "Genérico: esse texto serviria para qualquer loja do mundo.";
+    S1 = scoreBlock(B2, false);
+    p = el6("p", "", B5); words6(p, "Aqui está a legenda, no formato que você pediu:", A2.words);
+    var post = el6("div", "c6-post", B5);
+    post.innerHTML = '<div class="c6-ph"><span class="c6-pav">S</span><div><b>sualoja</b><small>Loja de roupas</small></div></div>' +
+      '<svg class="c6-img" viewBox="0 0 320 118" aria-hidden="true"><defs><linearGradient id="pbg6" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#18285A"/><stop offset="1" stop-color="#0D1738"/></linearGradient></defs><rect width="320" height="118" fill="url(#pbg6)"/>' +
+      '<g transform="translate(66 64)"><path d="M-28 -34 L-12 -40 Q0 -30 12 -40 L28 -34 L44 -12 L30 -2 L24 -9 L24 38 L-24 38 L-24 -9 L-30 -2 L-44 -12 Z" fill="#5B8CFF"/><path d="M-12 -40 Q0 -28 12 -40" fill="none" stroke="#3B62C8" stroke-width="3"/></g>' +
+      '<g transform="translate(150 64)"><path d="M-28 -34 L-12 -40 Q0 -30 12 -40 L28 -34 L44 -12 L30 -2 L24 -9 L24 38 L-24 38 L-24 -9 L-30 -2 L-44 -12 Z" fill="#7ED7C1"/><path d="M-12 -40 Q0 -28 12 -40" fill="none" stroke="#4FB39B" stroke-width="3"/></g>' +
+      '<g transform="translate(234 64)"><path d="M-28 -34 L-12 -40 Q0 -30 12 -40 L28 -34 L44 -12 L30 -2 L24 -9 L24 38 L-24 38 L-24 -9 L-30 -2 L-44 -12 Z" fill="#FF9F7A"/><path d="M-12 -40 Q0 -28 12 -40" fill="none" stroke="#D9774F" stroke-width="3"/></g>' +
+      '<g transform="translate(284 30) rotate(8)"><circle r="25" fill="#F5C84B"/><text y="-1" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="15" font-weight="800" fill="#2A1E00">R$ 39</text><text y="11" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="7.5" font-weight="600" fill="#2A1E00">até domingo</text></g></svg>' +
+      '<div class="c6-act"><svg viewBox="0 0 24 24"><path d="M12 21C5 16 2 12 2 8.500 2 5.500 4.300 3.500 7 3.500c1.900 0 3.400 1 5 3 1.600-2 3.100-3 5-3 2.700 0 5 2 5 5C22 12 19 16 12 21z"/></svg><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.600 7.100L3 21l1.900-5.400A8 8 0 1 1 21 12z"/></svg></div>' +
+      '<div class="c6-cap"><span id="cap6"></span><span class="ht" id="ht6"></span></div>';
+    words6($("#cap6", post), "Camisetas a R$ 39 só até domingo! Passa aqui e escolhe a sua antes que acabe.", A2.words);
+    words6($("#ht6", post), "#camisetas #promoção #lojadebairro", A2.words);
+    S2 = scoreBlock(B5, true);
+  })();
+  var M6 = null, th6h = 32, padB6 = 14, lastC6 = "", lastTh = "";
+  function measure6() {
+    M6 = KEY6.map(function (el) { return { top: el.offsetTop, h: el.offsetHeight }; });
+    th6h = th6.offsetHeight || 32;
+    padB6 = parseFloat(getComputedStyle(thread6).paddingBottom) || 14;
+  }
+  function revealA(A, bub, r) {
+    var n = Math.floor(r * A.words.length + 1e-6);
+    if (n !== A.n) { var lo = Math.min(n, A.n), hi = Math.max(n, A.n); for (var i = lo; i < hi; i++) A.words[i].style.opacity = i < n ? 1 : 0; A.n = n; }
+    var f = r <= 0 ? 0 : Math.min(1, r * 1.1 + 0.05);
+    bub.style.clipPath = "inset(0 0 " + ((1 - f) * 100).toFixed(2) + "% 0)";
+    return f;
+  }
+  function setScore(S, r, good) {
+    var shown = Math.floor(r * 5 + 1e-6);
+    S.el.style.opacity = r > 0 ? 1 : 0;
+    if (shown !== S.n) { S.n = shown; S.chips.forEach(function (c, i) { c.style.opacity = i < shown ? 1 : 0; c.style.transform = i < shown ? "none" : ""; }); S.num.textContent = (good ? shown : 0) + "/5"; }
   }
   function u6(p) {
     copyP(c6, p, 0.03, 0.3);
-    typeTo(E6.u1, E6.m1, "u1", seg(p, 0.04, 0.17));
-    typeTo(E6.a1, E6.m2, "a1", seg(p, 0.19, 0.33));
-    E6.t1.style.opacity = seg(p, 0.34, 0.4);
-    typeTo(E6.u2, E6.m3, "u2", seg(p, 0.5, 0.72));
-    typeTo(E6.a2, E6.m4, "a2", seg(p, 0.74, 0.9));
-    E6.t2.style.opacity = seg(p, 0.91, 0.97);
-    E6.rounds.style.transform ="translateY(" + (-shift6 * ease(seg(p, 0.42, 0.54))).toFixed(1) + "px)";
-    E6.r1.style.opacity = 1 - 0.65 * seg(p, 0.44, 0.54);
+    if (!M6) measure6();
+    /* campo de mensagem */
+    var text = "", mode = "plain";
+    if (p < 0.14) text = PROMPT1.slice(0, Math.floor(seg(p, 0.04, 0.13) * PROMPT1.length));
+    else if (p >= 0.56 && p < 0.71) { mode = "json"; text = PROMPT2.slice(0, Math.floor(seg(p, 0.56, 0.7) * PROMPT2.length)); }
+    var key = mode + ":" + text.length;
+    if (key !== lastC6) {
+      lastC6 = key;
+      if (mode === "json") cin.innerHTML = jhl(text); else cin.textContent = text;
+      cin.classList.toggle("json", mode === "json");
+      cin.classList.toggle("typing", text.length > 0);
+      cph.style.display = text.length ? "none" : "block";
+      csend.classList.toggle("on", text.length > 0);
+    }
+    /* mensagens */
+    var dim = seg(p, 0.54, 0.62), v1 = ease(seg(p, 0.14, 0.16)), v3 = ease(seg(p, 0.5, 0.54)), v4 = ease(seg(p, 0.71, 0.73));
+    var f2 = revealA(A1, B2, seg(p, 0.2, 0.34)), f5 = revealA(A2, B5, seg(p, 0.77, 0.9));
+    var o1 = 1 - 0.5 * dim;
+    KEY6[0].style.opacity = (v1 * o1).toFixed(3); KEY6[0].style.transform = "translateY(" + ((1 - v1) * 10).toFixed(1) + "px)";
+    KEY6[1].style.opacity = (f2 > 0 ? o1 : 0).toFixed(3);
+    KEY6[2].style.opacity = v3.toFixed(3);
+    KEY6[3].style.opacity = v4.toFixed(3); KEY6[3].style.transform = "translateY(" + ((1 - v4) * 10).toFixed(1) + "px)";
+    KEY6[4].style.opacity = f5 > 0 ? 1 : 0;
+    var a1 = seg(p, 0.35, 0.4);
+    B2.classList.toggle("annot", a1 > 0.15); NOTE1.style.opacity = a1.toFixed(2);
+    setScore(S1, seg(p, 0.4, 0.47), false); setScore(S2, seg(p, 0.9, 0.97), true);
+    /* pontos de "pensando" */
+    var th = p >= 0.16 && p < 0.2 ? 1 : p >= 0.73 && p < 0.77 ? 4 : 0;
+    if (th) th6.style.top = M6[th].top + "px";
+    th6.style.opacity = th ? 1 : 0;
+    /* rolagem do chat: o fim da conversa fica sempre à vista */
+    var rv = [v1, f2, v3, v4, f5], bottom = 0, i;
+    for (i = 0; i < 5; i++) if (rv[i] > 0.001) bottom = Math.max(bottom, M6[i].top + M6[i].h * rv[i]);
+    if (th) bottom = Math.max(bottom, M6[th].top + th6h);
+    var shift = Math.max(0, bottom + padB6 - body6.clientHeight);
+    thread6.style.transform = "translateY(" + (-shift).toFixed(1) + "px)";
   }
 
   /* ---------- motor de scroll ---------- */

@@ -346,9 +346,9 @@ var CONFIG = { nome: "Ruan Dener", whatsapp: "5564984450981" };
   var PAP = [], phoneSpr = null;
   var FS = "'IBM Plex Sans', system-ui, sans-serif", FM = "'IBM Plex Mono', ui-monospace, monospace", FH = "'Segoe Script','Bradley Hand','Snell Roundhand','Comic Sans MS',cursive";
   var ROWS3 = [
-    ["Ana Silva", "1041", "R$ 50,00", "#5B8CFF"], ["João Pereira", "1042", "R$ 120,00", "#F5B84B"],
-    ["Loja Sol", "1043", "R$ 80,50", "#3DDC97"], ["Mercado Lua", "1044", "R$ 200,00", "#B58BFF"],
-    ["Pedro Alves", "1045", "R$ 75,00", "#FF8F8F"], ["Clara Dias", "1046", "R$ 60,00", "#5BD0FF"],
+    ["João", "ligação", "15:45", "#5B8CFF"], ["Conta de luz", "pagar", "Hoje", "#F5B84B"],
+    ["Loja Sol", "pagar", "R$ 332,20", "#3DDC97"], ["Mercado Lua", "pago", "R$ 120,00", "#B58BFF"],
+    ["Pedro Alves", "12/10", "R$ 75,00", "#FF8F8F"], ["Clara Dias", "agenda", "10/10", "#5BD0FF"],
     ["Bar do Zé", "1047", "R$ 340,00", "#F58BD0"], ["Lúcia Reis", "1048", "R$ 95,00", "#9BE15D"]
   ];
   var PT = ["stain", "table", "agenda", "lined", "invoice", "receipt", "pink", "yellow"];
